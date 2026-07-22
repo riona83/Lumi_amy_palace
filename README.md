@@ -9,62 +9,69 @@ Everything runs on-device — no backend, no photos ever leave your phone.
 This is milestone **M0: project scaffold**. There's no scanning functionality yet —
 just a running app shell, ready for the next milestones to build on.
 
-## One-time setup (you'll need a Mac with Xcode)
+## Getting the app onto your iPhone (no Mac required)
 
-This project's Xcode project file is *generated*, not committed — that keeps the repo
-clean and avoids Xcode project-file merge conflicts. You generate it locally with
-[XcodeGen](https://github.com/yonaskolb/XcodeGen), reading the spec in `project.yml`.
+Building an iOS app requires Apple's Xcode toolchain, which only runs on macOS — that's
+an Apple restriction, not a choice made here. Since this project is developed from
+Windows, the build itself happens in the cloud (via GitHub Actions, using a free
+macOS runner), and you install the result onto your iPhone using a Windows sideloading
+tool with your own (free) Apple ID. No Mac purchase or rental needed.
 
-1. **Install Xcode** from the Mac App Store, if you don't already have it. Open it once
-   so it finishes installing its command-line tools.
-2. **Install Homebrew** (if you don't have it): follow the instructions at
-   [brew.sh](https://brew.sh).
-3. **Install XcodeGen**:
-   ```
-   brew install xcodegen
-   ```
-4. **Clone this repo** (or pull the latest changes) and, from the repo's root folder,
-   run:
-   ```
-   xcodegen generate
-   ```
-   This creates `PhotoCleanup.xcodeproj`. You'll re-run this command any time
-   `project.yml` changes (I'll tell you when that happens).
-5. **Open `PhotoCleanup.xcodeproj`** in Xcode.
-6. **Sign the app with your free Apple ID**: select the `PhotoCleanupApp` target →
-   *Signing & Capabilities* tab → under *Team*, choose your personal team (sign in
-   with your Apple ID in Xcode's Settings → Accounts first, if you haven't). If Xcode
-   complains the bundle identifier `com.riona.photocleanup` is already taken, change
-   it to something like `com.riona.photocleanup.yourname`.
-7. **Connect your iPhone** via cable (or set up wireless debugging), trust the
-   computer on your phone if prompted, and select your iPhone as the run destination
-   in Xcode's toolbar (instead of a simulator).
-8. **Press Run (▶)**. On first install, your iPhone will refuse to open the app until
-   you go to **Settings → General → VPN & Device Management** and trust the developer
-   certificate.
-9. You should see a "PhotoCleanup" home screen with a disabled "Scan Library" button —
-   that's expected for this milestone.
+### 1. Get a built `.ipa` from GitHub Actions
 
-**Note:** with a free (non-paid) Apple ID, the app's provisioning expires after 7
-days — just re-run it from Xcode to refresh it. No paid Apple Developer account is
-needed for personal use like this.
+Every push to this branch triggers a cloud build (see `.github/workflows/build.yml`).
+To get the file:
+
+1. Go to this repository on GitHub → **Actions** tab → open the latest **Build unsigned
+   IPA** run (or click **Run workflow** to trigger one manually).
+2. Once it finishes (a few minutes), scroll to **Artifacts** and download
+   `PhotoCleanupApp-unsigned-ipa` — this is a `.zip` containing `PhotoCleanupApp.ipa`.
+
+This `.ipa` is intentionally **unsigned** — the sideloading tool below does the signing
+locally using your Apple ID, so no Apple credentials ever need to be stored in CI.
+
+### 2. Install it on your iPhone with Sideloadly
+
+1. On your Windows PC, install [iTunes from Apple's website](https://www.apple.com/itunes/)
+   (not the Microsoft Store version) — this provides the drivers Windows needs to talk
+   to an iPhone over USB.
+2. Download and install [Sideloadly](https://sideloadly.io/).
+3. Connect your iPhone to your PC via USB cable and trust the computer when prompted
+   on your phone.
+4. Open Sideloadly, drag `PhotoCleanupApp.ipa` into it, enter your Apple ID (a free,
+   regular Apple ID — no paid Developer account needed) when prompted, and click
+   **Start**.
+5. On your iPhone, go to **Settings → General → VPN & Device Management**, and trust
+   the developer certificate under your Apple ID before opening the app.
+
+**Note:** with a free Apple ID, this kind of install expires after **7 days** — after
+that, just repeat step 4 with the same (or a freshly downloaded) `.ipa` to reinstall.
+[AltStore](https://altstore.io/) is a similar alternative if you'd prefer an on-device
+app for managing/refreshing installs instead of repeating this each time.
+
+You should see a "PhotoCleanup" home screen with a disabled "Scan Library" button —
+that's expected for this milestone.
+
+## If you ever do use a Mac
+
+The project also works the traditional way if you (or a future collaborator) have
+access to a Mac:
+
+1. Install [Homebrew](https://brew.sh), then `brew install xcodegen`.
+2. From the repo root, run `xcodegen generate` to create `PhotoCleanup.xcodeproj`.
+3. Open it in Xcode, sign with your Apple ID under *Signing & Capabilities*, connect
+   your iPhone, and press Run.
 
 ## Project structure
 
 - `PhotoCleanupApp/` — the SwiftUI app target (Views, ViewModels, Services).
 - `PhotoCleanupKit/` — a local Swift package with framework-free, pure-Swift logic
-  (clustering, scoring algorithms). Testable directly via `swift test` in this folder,
-  with no simulator, device, or real photo library needed.
+  (clustering, scoring algorithms). Testable directly via `swift test`, with no
+  simulator, device, or real photo library needed (on a Mac) — or via the
+  `PhotoCleanupKitTests` job in CI otherwise.
 - `project.yml` — XcodeGen spec that generates `PhotoCleanup.xcodeproj`.
-
-## Running the Kit's tests
-
-From the `PhotoCleanupKit/` folder, on your Mac:
-
-```
-cd PhotoCleanupKit
-swift test
-```
+- `.github/workflows/build.yml` — builds an unsigned, installable `.ipa` in the cloud
+  on every push.
 
 ## Roadmap
 
