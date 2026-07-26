@@ -11,8 +11,12 @@ final class HomeViewModel {
     var assets: [PHAsset] { photoLibraryService.assets }
     var photoCount: Int { assets.count }
 
-    init(photoLibraryService: PhotoLibraryService = PhotoLibraryService()) {
-        self.photoLibraryService = photoLibraryService
+    init(photoLibraryService: PhotoLibraryService? = nil) {
+        // A default *parameter value* that constructs a @MainActor type runs in
+        // a separate, non-isolated context and fails to compile — constructing
+        // it here in the init body (which inherits @MainActor from the class)
+        // avoids that.
+        self.photoLibraryService = photoLibraryService ?? PhotoLibraryService()
     }
 
     func onAppear() async {
