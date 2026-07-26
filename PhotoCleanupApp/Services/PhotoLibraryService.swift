@@ -1,4 +1,5 @@
 import Photos
+import PhotosUI
 import UIKit
 
 enum PhotoLibraryAccessStatus {
@@ -66,7 +67,7 @@ final class PhotoLibraryService {
             let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
             let root = scene.windows.first?.rootViewController
         else { return }
-        PHPhotoLibrary.presentLimitedLibraryPicker(from: root)
+        PHPhotoLibrary.shared().presentLimitedLibraryPicker(from: root)
     }
 
     /// Requests a modestly-sized thumbnail. Never requests full-resolution
